@@ -2,7 +2,6 @@
 import logging
 import time
 
-from confluent_kafka import avro
 from confluent_kafka.admin import AdminClient, NewTopic
 from confluent_kafka.avro import AvroProducer, CachedSchemaRegistryClient
 
@@ -15,6 +14,9 @@ class Producer:
     # Tracks existing topics across all Producer instances
     existing_topics = set([])
 
+    BROKER_URL = "PLAINTEXT://localhost:9092"
+    SCHEMA_REGISTRY_UTL = "http://localhost:8081"
+
     def __init__(
             self,
             topic_name,
@@ -22,8 +24,8 @@ class Producer:
             value_schema=None,
             num_partitions=1,
             num_replicas=1,
-            bootstrap_servers="PLAINTEXT://localhost:9092",
-            schema_registry_url="http://localhost:8081"
+            list_topics=[],
+            client=AdminClient({"bootstrap.servers": BROKER_URL,})
     ):
         """Initializes a Producer object with basic settings"""
         self.topic_name = topic_name
@@ -31,9 +33,8 @@ class Producer:
         self.value_schema = value_schema
         self.num_partitions = num_partitions
         self.num_replicas = num_replicas
-        self.bootstrap_servers = bootstrap_servers
-        self.schema_registry_url = schema_registry_url
-
+        self.list_topics = list_topics
+        self.client = client
         #
         #
         # TODO: Configure the broker properties below. Make sure to reference the project README
@@ -41,11 +42,12 @@ class Producer:
         #
         #
         self.broker_properties = {
-            "bootstrap.servers": bootstrap_servers,
+            "bootstrap.servers": Producer.BROKER_URL,
             "linger.ms": "500",
             # TODO
         }
 
+        self.list_topics = client.list_topics(timeout=5).topics
         # If the topic does not already exist, try to create it
         if self.topic_name not in Producer.existing_topics:
             self.create_topic()
@@ -54,76 +56,43 @@ class Producer:
         # TODO: Configure the AvroProducer
         self.producer = AvroProducer(
             self.broker_properties,
-            schema_registry=CachedSchemaRegistryClient(self.schema_registry_url),
+            schema_registry=CachedSchemaRegistryClient(Producer.SCHEMA_REGISTRY_UTL),
         )
 
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
-        client = AdminClient(self.broker_properties)
-        futures = client.create_topics(
-            [
-                NewTopic(
-                    topic=','.join(self.existing_topics),
-                    num_partitions=self.num_partitions,
-                    replication_factor=self.num_replicas,
-                    config={
-                        "cleanup.policy": "compact",
-                        "compression.type": "lz4",
-                        # "delete.retention.ms": "100",
-                        # "file.delete.delay.ms": "100"
-                    }
-                )
-            ]
-        )
-        # for topic in self.existing_topics:
-        #     topic_metadata = client.list_topics(timeout=5)
-        #     if topic_metadata.topics.get(topic):
-        #         logger.info("topic already exists not creating.%s", topic)
-        #     else:
-        #         futures = client.create_topics(
-        #             [
-        #                 NewTopic(
-        #                     topic=topic,
-        #                     num_partitions=self.num_partitions,
-        #                     replication_factor=self.num_replicas,
-        #                     config={
-        #                         "cleanup.policy": "compact",
-        #                         "compression.type": "lz4",
-        #                         # "delete.retention.ms": "100",
-        #                         # "file.delete.delay.ms": "100"
-        #                     }
-        #                 )
-        #             ]
-        #         )
-        #         for future in futures.items():
-        #             try:
-        #                 future.result()
-        #                 logger.info(f"topic created: {topic}")
-        #             except Exception as e:
-        #                 logger.info(f"failed to create topic {topic}: {e}")
-        #                 raise
-
-        # topic_metadata = client.list_topics(timeout=5)
-        # if topic_metadata.topics.get(self.existing_topics):
-        #     logger.info("topic already exists not creating.%s", self.existing_topics)
-        # else:
-
-        # for future in futures.items():
-        #     try:
-        #         future.result()
-        #         logger.info(f"topic created: {self.existing_topics}")
-        #     except Exception as e:
-        #         logger.info(f"failed to create topic {self.existing_topics}: {e}")
-        #         raise
-
-
-    #
-    #
-    # TODO: Write code that creates the topic for this producer if it does not already exist on
-    # the Kafka Broker.
-    #
-    #
-    # logger.info("topic creation kafka integration incomplete - skipping")
+        for topic in self.existing_topics:
+            logger.info("Checking topic %s", topic)
+            try:
+                if self.list_topics.get(topic):
+                    logger.info("topic already exists not creating %s", topic)
+                else:
+                    logger.info(f"test: {topic}")
+                    futures = self.client.create_topics(
+                        [
+                            NewTopic(
+                                topic=topic,
+                                num_partitions=self.num_partitions,
+                                replication_factor=self.num_replicas,
+                                config={
+                                    "cleanup.policy": "compact",
+                                    "compression.type": "lz4",
+                                    "delete.retention.ms": "100",
+                                    "file.delete.delay.ms": "100"
+                                }
+                            )
+                        ]
+                    )
+                    for future in futures.items():
+                        try:
+                            future
+                            logger.info(f"topic created: {topic}")
+                        except Exception as e:
+                            logger.info(f"failed to create topic {topic}: {e}")
+                            raise
+            except Exception as e:
+                logger.info(f"failed to get metadata for topic {topic}: {e}")
+                raise
 
     def time_millis(self):
         return int(round(time.time() * 1000))
@@ -135,6 +104,7 @@ class Producer:
         # TODO: Write cleanup code for the Producer here
         #
         #
+        # Producer.client.close()
         logger.info("producer close incomplete - skipping")
 
     def time_millis(self):

@@ -7,7 +7,6 @@ from confluent_kafka import avro
 from models.producer import Producer
 from models.turnstile_hardware import TurnstileHardware
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -25,10 +24,10 @@ class Turnstile(Producer):
         """Create the Turnstile"""
         station_name = (
             station.name.lower()
-            .replace("/", "_and_")
-            .replace(" ", "_")
-            .replace("-", "_")
-            .replace("'", "")
+                .replace("/", "_and_")
+                .replace(" ", "_")
+                .replace("-", "_")
+                .replace("'", "")
         )
 
         #
@@ -38,11 +37,11 @@ class Turnstile(Producer):
         #
         #
         super().__init__(
-            f"turnstile.info.{station_name}", # TODO: Come up with a better topic name
+            f"turnstile.info.{station_name}",
             key_schema=Turnstile.key_schema,
-            value_schema=Turnstile.value_schema,# TODO: value_schema=Turnstile.value_schema, TODO: Uncomment once schema is defined
-            num_partitions=1,# TODO: num_partitions=???,
-            num_replicas=1,# TODO: num_replicas=???,
+            value_schema=Turnstile.value_schema,
+            num_partitions=1,
+            num_replicas=1,
         )
         self.station = station
         self.turnstile_hardware = TurnstileHardware(station)
@@ -50,7 +49,7 @@ class Turnstile(Producer):
     def run(self, timestamp, time_step):
         """Simulates riders entering through the turnstile."""
         num_entries = self.turnstile_hardware.get_entries(timestamp, time_step)
-        logger.info("turnstile kafka integration incomplete - skipping")
+        logger.info("producing data for turnstile topic: %s", self.topic_name)
         #
         #
         # TODO: Complete this function by emitting a message to the turnstile topic for the number
@@ -63,13 +62,8 @@ class Turnstile(Producer):
             key_schema=self.key_schema,
             value={
                 "station_id": self.station.station_id,
-                "station_name": self.station_name,
-                "line":self.station.color,
-                #
-                #
-                # TODO: Configure this
-                #
-                #
+                "station_name": self.station.name,
+                "line": str(self.station.color),
             },
             value_schema=self.value_schema,
         )
