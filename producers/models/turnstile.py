@@ -13,9 +13,6 @@ logger = logging.getLogger(__name__)
 class Turnstile(Producer):
     key_schema = avro.load(f"{Path(__file__).parents[0]}/schemas/turnstile_key.json")
 
-    #
-    # TODO: Define this value schema in `schemas/turnstile_value.json, then uncomment the below
-    #
     value_schema = avro.load(
         f"{Path(__file__).parents[0]}/schemas/turnstile_value.json"
     )
@@ -30,14 +27,8 @@ class Turnstile(Producer):
                 .replace("'", "")
         )
 
-        #
-        #
-        # TODO: Complete the below by deciding on a topic name, number of partitions, and number of
-        # replicas
-        #
-        #
         super().__init__(
-            f"turnstile.info.{station_name}",
+            f"org.chicago.cta.station.turnstile",
             key_schema=Turnstile.key_schema,
             value_schema=Turnstile.value_schema,
             num_partitions=1,
@@ -50,12 +41,6 @@ class Turnstile(Producer):
         """Simulates riders entering through the turnstile."""
         num_entries = self.turnstile_hardware.get_entries(timestamp, time_step)
         logger.info("producing data for turnstile topic: %s", self.topic_name)
-        #
-        #
-        # TODO: Complete this function by emitting a message to the turnstile topic for the number
-        # of entries that were calculated
-        #
-        #
         self.producer.produce(
             topic=self.topic_name,
             key={"timestamp": self.time_millis()},

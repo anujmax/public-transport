@@ -25,7 +25,7 @@ class Producer:
             num_partitions=1,
             num_replicas=1,
             list_topics=[],
-            client=AdminClient({"bootstrap.servers": BROKER_URL,})
+            client=AdminClient({"bootstrap.servers": BROKER_URL, })
     ):
         """Initializes a Producer object with basic settings"""
         self.topic_name = topic_name
@@ -35,16 +35,9 @@ class Producer:
         self.num_replicas = num_replicas
         self.list_topics = list_topics
         self.client = client
-        #
-        #
-        # TODO: Configure the broker properties below. Make sure to reference the project README
-        # and use the Host URL for Kafka and Schema Registry!
-        #
-        #
         self.broker_properties = {
             "bootstrap.servers": Producer.BROKER_URL,
             "linger.ms": "500",
-            # TODO
         }
 
         self.list_topics = client.list_topics(timeout=5).topics
@@ -53,7 +46,6 @@ class Producer:
             self.create_topic()
             Producer.existing_topics.add(self.topic_name)
 
-        # TODO: Configure the AvroProducer
         self.producer = AvroProducer(
             self.broker_properties,
             schema_registry=CachedSchemaRegistryClient(Producer.SCHEMA_REGISTRY_UTL),
@@ -97,14 +89,6 @@ class Producer:
 
     def close(self):
         """Prepares the producer for exit by cleaning up the producer"""
-        #
-        #
-        # TODO: Write cleanup code for the Producer here
-        #
-        #
-        #self.client.close()
-        logger.info("producer close incomplete - skipping")
-
-    def time_millis(self):
-        """Use this function to get the key for Kafka Events"""
-        return int(round(time.time() * 1000))
+        if self.producer is not None:
+            logger.debug("closing producer")
+            self.producer.flush()

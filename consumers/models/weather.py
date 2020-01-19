@@ -1,6 +1,7 @@
 """Contains functionality related to Weather"""
 import logging
 
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -21,3 +22,14 @@ class Weather:
         # TODO: Process incoming weather messages. Set the temperature and status.
         #
         #
+        if message.topic() == "org.chicago.cta.weather.v1":
+            try:
+                value = json.loads(message.value())
+                self.temperature = value.temperature
+                self.status = value.temperature
+            except Exception as e:
+                logger.fatal("bad weather info? %s, %s", value, e)
+        else:
+            logger.error(
+                "unable to find handler for message from topic %s", message.topic
+            )
