@@ -57,10 +57,10 @@ app = faust.App("stations-stream", broker="kafka://localhost:9092", store="memor
 # TODO: Define the input Kafka Topic. Hint: What topic did Kafka Connect output to?
 topic = app.topic("connect-stations", value_type=Station)
 # TODO: Define the output Kafka Topic
-out_topic = app.topic("faust.transformed-stations", partitions=1)
+out_topic = app.topic("org.chicago.cta.stations.table.v1", partitions=1)
 # TODO: Define a Faust Table
 table = app.Table(
-    "transformed_stations",  # "TODO",
+    "org.chicago.cta.stations.table.v1",  # "TODO",
     default=int,  # default=TODO,
     partitions=1,
     changelog_topic=out_topic,
@@ -75,8 +75,8 @@ table = app.Table(
 #
 #
 @app.agent(topic)
-async def stations(trainevents):
-    async for event in trainevents:
+async def stations(train_events):
+    async for event in train_events:
         table[event.stop_id] = get_transformed_station(event)
 
 
