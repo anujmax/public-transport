@@ -38,16 +38,16 @@ class Line:
             if prev_station is not None:
                 prev_station.handle_departure(prev_dir)
             else:
-                logger.debug("unable to handle previous station due to missing station")
+                logger.info("unable to handle previous station due to missing station")
         else:
-            logger.debug(
+            logger.info(
                 "unable to handle previous station due to missing previous info"
             )
 
         station_id = value.get("station_id")
         station = self.stations.get(station_id)
         if station is None:
-            logger.debug("unable to handle message due to missing station")
+            logger.info("unable to handle message due to missing station")
             return
         station.handle_arrival(
             value.get("direction"), value.get("train_id"), value.get("train_status")

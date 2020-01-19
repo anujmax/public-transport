@@ -92,7 +92,7 @@ class Weather(Producer):
         except:
             logger.error(f"Failed to send data to REST Proxy {json.dumps(resp.json(), indent=2)}")
 
-        logger.debug(
+        logger.info(
             "sent weather data to kafka, temp: %s, status: %s",
             self.temp,
             self.status.name,

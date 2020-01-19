@@ -88,7 +88,8 @@ class KafkaConsumer:
                 logger.error(f"error from consumer {message.error()}")
                 return 0
             else:
-                logger.debug(f"consumed message {message.key()}: {message.value()}")
+                logger.info(f"consumed message {message.key()}: {message.value()}")
+                self.message_handler(message)
                 return 1
 
     def close(self):

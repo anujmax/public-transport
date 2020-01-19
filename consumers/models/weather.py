@@ -24,9 +24,9 @@ class Weather:
         #
         if message.topic() == "org.chicago.cta.weather.v1":
             try:
-                value = json.loads(message.value())
-                self.temperature = value.temperature
-                self.status = value.temperature
+                value = message.value()
+                self.temperature = value['temperature']
+                self.status = value['status']
             except Exception as e:
                 logger.fatal("bad weather info? %s, %s", value, e)
         else:

@@ -44,7 +44,7 @@ def get_line(station):
 
 def get_transformed_station(station):
     return TransformedStation(
-        station_id=station.stop_id,
+        station_id=station.station_id,
         station_name=station.stop_name,
         order=station.order,
         line=get_line(station)
