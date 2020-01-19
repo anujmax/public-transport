@@ -69,8 +69,8 @@ class Station(Producer):
                 "station_id": self.station_id,
                 "train_id": train.train_id,
                 "direction": direction,
-                "line": str(self.color),
-                "train_status": str(train.status),
+                "line": self.color.name,
+                "train_status": train.status.name,
                 "prev_station_id": prev_station_id,
                 "prev_direction": prev_direction,
                 #

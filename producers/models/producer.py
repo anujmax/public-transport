@@ -62,12 +62,12 @@ class Producer:
     def create_topic(self):
         """Creates the producer topic if it does not already exist"""
         for topic in self.existing_topics:
-            logger.info("Checking topic %s", topic)
             try:
                 if self.list_topics.get(topic):
+                    continue
                     logger.info("topic already exists not creating %s", topic)
                 else:
-                    logger.info(f"test: {topic}")
+                    logger.info(f"creating topic: {topic}")
                     futures = self.client.create_topics(
                         [
                             NewTopic(
@@ -104,7 +104,7 @@ class Producer:
         # TODO: Write cleanup code for the Producer here
         #
         #
-        # Producer.client.close()
+        #self.client.close()
         logger.info("producer close incomplete - skipping")
 
     def time_millis(self):
