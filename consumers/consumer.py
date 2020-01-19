@@ -45,9 +45,9 @@ class KafkaConsumer:
         # TODO: Create the Consumer, using the appropriate type.
         if is_avro is True:
             self.broker_properties["schema.registry.url"] = "http://localhost:8081"
-            self.consumer = AvroConsumer(self.broker_properties,
-                                         schema_registry=CachedSchemaRegistryClient(
-                                             self.broker_properties["schema.registry.url"]))
+            self.consumer = AvroConsumer(self.broker_properties,)
+            #schema_registry = CachedSchemaRegistryClient(
+                #self.broker_properties["schema.registry.url"])
         else:
             self.consumer = Consumer(self.broker_properties)
             pass
@@ -58,13 +58,10 @@ class KafkaConsumer:
         # how the `on_assign` callback should be invoked.
         #
         #
-        self.consumer.subscribe([topic_name_pattern], on_assign=self.on_assign)
+        self.consumer.subscribe([self.topic_name_pattern], on_assign=self.on_assign)
 
     def on_assign(self, consumer, partitions):
         """Callback for when topic assignment takes place"""
-        # TODO: If the topic is configured to use `offset_earliest` set the partition offset to
-        # the beginning or earliest
-        logger.info("on_assign is incomplete - skipping")
         for partition in partitions:
             if self.offset_earliest:
                 partition.offset = OFFSET_BEGINNING
@@ -85,7 +82,7 @@ class KafkaConsumer:
         while True:
             message = self.consumer.poll(self.consume_timeout)
             if message is None:
-                logger.info("no message received by consumer")
+                logger.info("no message received by consumer with topic: %s ", self.topic_name_pattern)
                 return 0
             elif message.error() is not None:
                 logger.error(f"error from consumer {message.error()}")
